@@ -48,34 +48,53 @@ static void device_info_bool( cl_device_id device, cl_device_info param, const c
 static void device_info_string( cl_device_id device, cl_device_info param, const char* name);
 static void display_device_info( cl_device_id device );
 
-// TODO: you will need to allocate memory dynamically for larger arrays
-static float A[8] = {
-  1.0f,  1.0f,  1.0f,  1.0f,
-  1.0f,  1.0f,  1.0f,  1.0f};
-
-static float B[24] = {
-  2.0f,  2.0f,  2.0f,  2.0f, 2.0f, 2.0f,
-  2.0f,  2.0f,  2.0f,  2.0f, 2.0f, 2.0f,
-  2.0f,  2.0f,  2.0f,  2.0f, 2.0f, 2.0f,
-  2.0f,  2.0f,  2.0f,  2.0f, 2.0f, 2.0f};
-
-static float C[10] = {
-  3.0f, 3.0f, 3.0f, 3.0f, 3.0f,
-  3.0f, 3.0f, 3.0f, 3.0f, 3.0f};
-
-// declare matrix sizes
-static size_t wA = 4;
-static size_t hA = 2;
-static size_t wB = 6;
-static size_t hB = 4;
-static size_t wC = wB; // wC = wD
-static size_t hC = hA; // hD = hA
-
 // Entry point.
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
+
   Options options(argc, argv);
 
+  // program expects command line arguments m, n, p to set matrix sizes
+  // Defaults: m = 200, n = 400, p = 600 
+
   int ret;
+
+  // declare matrix sizes
+  size_t wA = 400;
+  size_t hA = 200;
+  size_t wB = 600;
+
+  // Optional argument to specify the problem size.
+  if(options.has("m")) {
+    hA = options.get<unsigned>("m");
+  }
+  // Optional argument to specify the problem size.
+  if(options.has("n")) {
+    wA = options.get<unsigned>("n");
+  }
+  // Optional argument to specify the problem size.
+  if(options.has("p")) {
+    wB = options.get<unsigned>("p");
+  }
+
+  size_t hB = wA;
+  size_t wC = wB; // wD = wC
+  size_t hC = hA; // hD = hA
+
+  float A[wA*hA]; 
+  float B[wB*hB];
+  float C[wC*hC];
+
+  for(int i = 0; i < hA*wA; i++) {
+    A[i] = 1.0f;
+  }
+
+  for(int i = 0; i < hB*wB; i++) {
+    B[i] = 2.0f;
+  }
+
+  for(int i = 0; i < hC*wC; i++) {
+    C[i] = 3.0f;
+  }
 
   // Optional argument to specify whether the emulator should be used.
   if(options.has("emulator")) {
@@ -89,49 +108,51 @@ int main(int argc, char **argv) {
   }
 
   float *D = (float *)calloc (hC * wC ,  sizeof(float));
+  /* Code to print output matrix to show it is filled with 0s
   for (int i = 0; i < wC*hC; i++) {
     printf ("%f ", D[i]);
   }
   printf("\n");
+  */
 
   // In this example, we assume A, B, C are float arrays which
   // have been declared and initialized
-  // TODO: change to dynamic memory allocation for larger arrays
-  // TODO: initialize the elements in matrices.
-  
+ 
   // allocate space for Matrix A on the device 
   cl_mem bufferA = clCreateBuffer(context, CL_MEM_READ_ONLY,
           wA*hA*sizeof(float), NULL, &ret);
   // copy Matrix A to the device 
   clEnqueueWriteBuffer(queue, bufferA, CL_TRUE, 0,
-          wA*hA*sizeof(float), (void *)A, 0, NULL, NULL);
+          wA*hA*sizeof(float), (void *) A, 0, NULL, NULL);
 
   // allocate space for Matrix B on the device 
   cl_mem bufferB = clCreateBuffer(context, CL_MEM_READ_ONLY,
           wB*hB*sizeof(float), NULL, &ret);
   // copy Matrix B to the device 
   clEnqueueWriteBuffer(queue, bufferB, CL_TRUE, 0,
-          wB*hB*sizeof(float), (void *)B, 0, NULL, NULL);
+          wB*hB*sizeof(float), (void *) B, 0, NULL, NULL);
 
   // allocate space for Matrix C on the device 
   cl_mem bufferC = clCreateBuffer(context, CL_MEM_READ_ONLY,
           wC*hC*sizeof(float), NULL, &ret);
   // copy Matrix C to the device 
   clEnqueueWriteBuffer(queue, bufferC, CL_TRUE, 0,
-          wC*hC*sizeof(float), (void *)C, 0, NULL, NULL);
+          wC*hC*sizeof(float), (void *) C, 0, NULL, NULL);
 
   // allocate space for Matrix D on the device 
-  cl_mem bufferC = clCreateBuffer(context, CL_MEM_WRITE_ONLY,
+  cl_mem bufferD = clCreateBuffer(context, CL_MEM_WRITE_ONLY,
           wC*hC*sizeof(float), NULL, &ret);
 
-  // Set the kernel arguments 
-  status = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&bufferC);
+  // Set the kernel arguments
+  status = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&bufferD);
   status = clSetKernelArg(kernel, 1, sizeof(cl_int), (void *)&wA);
   status = clSetKernelArg(kernel, 2, sizeof(cl_int), (void *)&hA);
   status = clSetKernelArg(kernel, 3, sizeof(cl_int), (void *)&wB);
   status = clSetKernelArg(kernel, 4, sizeof(cl_int), (void *)&hB);
   status = clSetKernelArg(kernel, 5, sizeof(cl_mem), (void *)&bufferA);
   status = clSetKernelArg(kernel, 6, sizeof(cl_mem), (void *)&bufferB);
+  status = clSetKernelArg(kernel, 7, sizeof(cl_mem), (void *)&bufferC);
+
   checkError(status, "Failed to set kernel arg ");
 
   printf("\nKernel initialization is complete.\n");
@@ -153,12 +174,12 @@ int main(int argc, char **argv) {
   printf("\nKernel execution is complete.\n");
 
   // Copy the output data back to the host 
-  clEnqueueReadBuffer(queue, bufferC, CL_TRUE, 0, wC*hC*sizeof(float),
-         (void *)C, 0, NULL, NULL);
+  clEnqueueReadBuffer(queue, bufferD, CL_TRUE, 0, wC*hC*sizeof(float),
+         (void *)D, 0, NULL, NULL);
 
-  // Verify result 
-  for (int i = 0; i < wC*hC; i++) {
-    printf ("%f ", C[i]);
+  // Print the first row of the output matrix
+  for (int i = 0; i < wC; i++) {
+    printf ("%f ", D[i]);
   }
   printf("\n");
 

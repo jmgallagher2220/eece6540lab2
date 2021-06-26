@@ -1,0 +1,18 @@
+Using build options: -cl-std=CL1.2 -g -s "/home/u77074/A10_OPENCL_AFU/v1.2.1/eece6540lab2/lab2/matrix_multi/device/matrix_multi.cl" -Xclang -O3 -Xclang -Wuninitialized -Xclang -DINTELFPGA_CL=194 -Xclang -ivfsoverlay-lib/glob/development-tools/versions/fpgasupportstack/a10/1.2.1/intelFPGA_pro/hld/linux64/lib/libaoc_clang_decrypt.so -I "/home/u77074/A10_OPENCL_AFU/v1.2.1/eece6540lab2/lab2/matrix_multi/device" -I "/glob/development-tools/versions/fpgasupportstack/a10/1.2.1/intelFPGA_pro/hld/llvm/include/cclang"
+Setting target instruction set architecture to: Default (Intel(R) Advanced Vector Extensions 2 (Intel(R) AVX2))
+Platform name: Intel(R) FPGA Emulation Platform for OpenCL(TM)
+Device name: Intel(R) FPGA Emulation Device
+Device version: OpenCL 1.0 
+Device vendor: Intel(R) Corporation
+Device profile: EMBEDDED_PROFILE
+Compilation started
+/home/u77074/A10_OPENCL_AFU/v1.2.1/eece6540lab2/lab2/matrix_multi/device/matrix_multi.cl:35:5: error: use of undeclared identifier 'outputD'; did you mean 'outputC'?
+    outputD[row*widthB + col] = sum + inputC[row*widthB + col];
+    ^~~~~~~
+    outputC
+/home/u77074/A10_OPENCL_AFU/v1.2.1/eece6540lab2/lab2/matrix_multi/device/matrix_multi.cl:14:21: note: 'outputC' declared here
+    __global float *outputC,
+                    ^
+Compilation failed
+Failed to build program...: -15 (CL_COMPILE_PROGRAM_FAILURE)
+Compilation failed!

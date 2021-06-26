@@ -11,7 +11,7 @@ file matrix_multi.cl
 
 /* widthA=heightB for valid matrix multiplication */
 __kernel void simpleMultiply(
-    __global float *outputC,
+    __global float *outputD,
     int widthA,
     int heightA,
     int widthB,
