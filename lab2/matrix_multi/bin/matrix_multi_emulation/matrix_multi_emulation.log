@@ -1,0 +1,1 @@
+Compiler Command: aoc -march=emulator -v device/matrix_multi.cl -o bin/matrix_multi_emulation.aocx
